@@ -49,10 +49,14 @@ export default function App() {
 
     const axisOffset = 25;
     // 設定軸範圍
-    const xMin = -axisOffset;
     const xMax = 1025;
     const yMin = -axisOffset;
     const yMax = 1025;
+
+    const xDataStart = 200;
+    const xDisplayMin = xDataStart - axisOffset;
+    const xDisplayMax = xMax;
+    const xDisplayRange = xDisplayMax - xDisplayMin;
 
     // 設定刻度間距
     const xTickInterval = 100;
@@ -63,14 +67,14 @@ export default function App() {
 
     const scaleMarginRatio = 0.9; // 縮放比例
     // 換算單位的像素
-    const scaleX = (canvasWidth * scaleMarginRatio) / xMax;
+    const scaleX = (canvasWidth * scaleMarginRatio) / xDisplayRange;
     const scaleY = (canvasHeight * scaleMarginRatio) / yMax;
-    
+
     // 圖表雨畫布的距離
-    const offsetX = (canvasWidth - xMax * scaleX) / 2;
+    const offsetX = (canvasWidth - xDisplayRange * scaleX) / 2;
     const offsetY = (canvasHeight - yMax * scaleY) / 2;
-   
-    const toCanvasX = (x: number) => x * scaleX + offsetX;
+
+    const toCanvasX = (x: number) => (x - xDisplayMin) * scaleX + offsetX;
     const toCanvasY = (y: number) => canvasHeight - y * scaleY - offsetY;
 
     const generateRandomPoint = () => {
@@ -94,9 +98,9 @@ export default function App() {
                     {/* 繪製 X 軸 */}
                     <Line
                         points={[
-                            toCanvasX(xMin + axisOffset),
+                            toCanvasX(xDisplayMin),
                             toCanvasY(0),
-                            toCanvasX(xMax + axisOffset),
+                            toCanvasX(xDisplayMax),
                             toCanvasY(0),
                         ]}
                         stroke="white"
@@ -106,9 +110,9 @@ export default function App() {
                     {/* 繪製 Y 軸 */}
                     <Line
                         points={[
-                            toCanvasX(0),
+                            toCanvasX(xDisplayMin),
                             toCanvasY(yMin + axisOffset),
-                            toCanvasX(0),
+                            toCanvasX(xDisplayMin),
                             toCanvasY(yMax + axisOffset),
                         ]}
                         stroke="white"
@@ -116,36 +120,38 @@ export default function App() {
                     />
 
                     {/* X 軸刻度 */}
-                    {generateTicks(xMax, xTickInterval).map((x, index) => (
-                        <React.Fragment key={`x-tick-${index}`}>
-                            <Line
-                                points={[
-                                    toCanvasX(x + axisOffset),
-                                    toCanvasY(0),
-                                    toCanvasX(x + axisOffset),
-                                    toCanvasY(0) + 10,
-                                ]}
-                                stroke="white"
-                                strokeWidth={2}
-                            />
-                            <Text
-                                text={x.toString()}
-                                x={toCanvasX(x + axisOffset) - (x >= 100 ? 15 : 5)}
-                                y={toCanvasY(0) + axisOffset}
-                                fontSize={14}
-                                fill="white"
-                            />
-                        </React.Fragment>
-                    ))}
+                    {generateTicks(xMax, xTickInterval)
+                        .filter((x) => x >= xDataStart)
+                        .map((x, index) => (
+                            <React.Fragment key={`x-tick-${index}`}>
+                                <Line
+                                    points={[
+                                        toCanvasX(x),
+                                        toCanvasY(0),
+                                        toCanvasX(x),
+                                        toCanvasY(0) + 10,
+                                    ]}
+                                    stroke="white"
+                                    strokeWidth={2}
+                                />
+                                <Text
+                                    text={x.toString()}
+                                    x={toCanvasX(x) - (x >= 100 ? 15 : 5)}
+                                    y={toCanvasY(0) + axisOffset}
+                                    fontSize={14}
+                                    fill="white"
+                                />
+                            </React.Fragment>
+                        ))}
 
                     {/* 繪製 Y 軸刻度 */}
                     {generateTicks(yMax, yTickInterval).map((y, index) => (
                         <React.Fragment key={`y-tick-${index}`}>
                             <Line
                                 points={[
-                                    toCanvasX(0),
+                                    toCanvasX(xDisplayMin),
                                     toCanvasY(y + axisOffset),
-                                    toCanvasX(0) - 10,
+                                    toCanvasX(xDisplayMin) - 10,
                                     toCanvasY(y + axisOffset),
                                 ]}
                                 stroke="white"
@@ -153,7 +159,7 @@ export default function App() {
                             />
                             <Text
                                 text={y.toString()}
-                                x={toCanvasX(0) - 40}
+                                x={toCanvasX(xDisplayMin) - 40}
                                 y={toCanvasY(y + axisOffset) - 5}
                                 fontSize={14}
                                 fill="white"
@@ -166,9 +172,10 @@ export default function App() {
                         <Shape
                             sceneFunc={(ctx) => {
                                 points.forEach((p) => {
+                                    if (p.x < xDataStart) return;
                                     ctx.beginPath();
                                     ctx.arc(
-                                        toCanvasX(p.x + axisOffset),
+                                        toCanvasX(p.x),
                                         toCanvasY(p.y + axisOffset),
                                         1.5,
                                         0,
@@ -183,7 +190,7 @@ export default function App() {
                     {point && (
                         <>
                             <Circle
-                                x={toCanvasX(point.x + axisOffset)}
+                                x={toCanvasX(point.x)}
                                 y={toCanvasY(point.y + axisOffset)}
                                 radius={5}
                                 fill="red"
