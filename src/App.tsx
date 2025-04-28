@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import inside from "point-in-polygon";
 import { Stage, Layer, Shape, Line, Text, Circle } from "react-konva";
+import Konva from "konva";
 import { v4 as uuidv4 } from "uuid";
 import "./App.css";
 
@@ -99,12 +100,12 @@ export default function App() {
         return distance < 10;
     };
 
-    const handleStageClick = (e) => {
+    const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
         if (!canUsePolygon) {
             return;
         }
         const stage = e.target.getStage();
-        const pointerPosition = stage.getPointerPosition();
+        const pointerPosition = stage?.getPointerPosition();
         if (!pointerPosition) return;
 
         const { x, y } = pointerPosition;
@@ -149,7 +150,7 @@ export default function App() {
         }
     };
 
-    const handleRightClick = (e) => {
+    const handleRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
         console.log(e);
         e.preventDefault();
         setDrawPoints([]);
