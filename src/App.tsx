@@ -12,6 +12,38 @@ type Polygon = {
     points: Point[];
 };
 
+const axisOffset = 25;
+// 設定軸範圍
+const xMax = 1025;
+const yMin = -axisOffset;
+const yMax = 1025;
+
+const xDataStart = 200;
+const xDisplayMin = xDataStart - axisOffset;
+const xDisplayMax = xMax;
+const xDisplayRange = xDisplayMax - xDisplayMin;
+
+// 設定刻度間距
+const xTickInterval = 100;
+const yTickInterval = 200;
+
+const canvasHeight = 800;
+const canvasWidth = 800;
+
+const scaleMarginRatio = 0.9; // 縮放比例
+// 換算單位的像素
+const scaleX = (canvasWidth * scaleMarginRatio) / xDisplayRange;
+const scaleY = (canvasHeight * scaleMarginRatio) / yMax;
+
+// 圖表雨畫布的距離
+const offsetX = (canvasWidth - xDisplayRange * scaleX) / 2;
+const offsetY = (canvasHeight - yMax * scaleY) / 2;
+
+const toCanvasX = (x: number) => (x - xDisplayMin) * scaleX + offsetX;
+const toCanvasY = (y: number) => canvasHeight - y * scaleY - offsetY;
+const generateTicks = (max: number, interval: number) =>
+    Array.from({ length: max / interval + 1 }, (_, i) => i * interval);
+
 // 生成隨機資料點
 function generatePoints(n: number) {
     const points = [];
@@ -132,36 +164,6 @@ export default function App() {
         });
     };
 
-    const axisOffset = 25;
-    // 設定軸範圍
-    const xMax = 1025;
-    const yMin = -axisOffset;
-    const yMax = 1025;
-
-    const xDataStart = 200;
-    const xDisplayMin = xDataStart - axisOffset;
-    const xDisplayMax = xMax;
-    const xDisplayRange = xDisplayMax - xDisplayMin;
-
-    // 設定刻度間距
-    const xTickInterval = 100;
-    const yTickInterval = 200;
-
-    const canvasHeight = 800;
-    const canvasWidth = 800;
-
-    const scaleMarginRatio = 0.9; // 縮放比例
-    // 換算單位的像素
-    const scaleX = (canvasWidth * scaleMarginRatio) / xDisplayRange;
-    const scaleY = (canvasHeight * scaleMarginRatio) / yMax;
-
-    // 圖表雨畫布的距離
-    const offsetX = (canvasWidth - xDisplayRange * scaleX) / 2;
-    const offsetY = (canvasHeight - yMax * scaleY) / 2;
-
-    const toCanvasX = (x: number) => (x - xDisplayMin) * scaleX + offsetX;
-    const toCanvasY = (y: number) => canvasHeight - y * scaleY - offsetY;
-
     const generateRandomPoint = () => {
         const x = Math.random() * xMax;
         const y = Math.random() * yMax;
@@ -169,9 +171,6 @@ export default function App() {
         console.log("轉換後座標：", { x, y: toCanvasY(y) });
         setPoint({ x, y });
     };
-
-    const generateTicks = (max: number, interval: number) =>
-        Array.from({ length: max / interval + 1 }, (_, i) => i * interval);
 
     return (
         <div className="plot" onContextMenu={handleRightClick}>
