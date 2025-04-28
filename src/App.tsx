@@ -1,11 +1,23 @@
 import React, { useState } from "react";
+import inside from "point-in-polygon";
 import { Stage, Layer, Shape, Line, Text, Circle } from "react-konva";
+import { v4 as uuidv4 } from "uuid";
 import "./App.css";
+
+type Point = [number, number];
+type Polygon = {
+    id: string;
+    name: string;
+    color: string;
+    points: Point[];
+};
+
 // 生成隨機資料點
 function generatePoints(n: number) {
     const points = [];
     for (let i = 0; i < n; i++) {
         points.push({
+            id: uuidv4(),
             x: Math.random() * 1000,
             y: Math.random() * 1000,
             color: `hsl(${Math.random() * 360}, 80%, 60%)`,
@@ -32,11 +44,84 @@ async function fetchCsvPoints(
 
     return result;
 }
+
 export default function App() {
-    const [points, setPoints] = useState<{ x: number; y: number; color: string }[]>([]);
+    const [points, setPoints] = useState<
+        { id: string; x: number; y: number; color: string }[]
+    >([]);
     const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
     const [loaded, setLoaded] = useState(false);
     const [testPoint, setTestPoint] = useState(true);
+
+    const [polygons, setPolygons] = useState<Polygon[]>([]);
+    const [drawPoints, setDrawPoints] = useState<[number, number][]>([]);
+    const [canUsePolygon, setCanUsePolygon] = useState(true);
+    const [currentColor, setCurrentColor] = useState(`hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`);
+
+    const isCloseToFirstPoint = (x: number, y: number) => {
+        if (drawPoints.length === 0) return false;
+        const [firstX, firstY] = drawPoints[0];
+        const dx = firstX - x;
+        const dy = firstY - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < 10;
+    };
+
+    const handleStageClick = (e) => {
+        if (!canUsePolygon) {
+            return;
+        }
+        const stage = e.target.getStage();
+        const pointerPosition = stage.getPointerPosition();
+        if (!pointerPosition) return;
+
+        const { x, y } = pointerPosition;
+
+        setCurrentColor(`hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`);
+
+        if (drawPoints.length > 2 && isCloseToFirstPoint(x, y)) {
+            setPolygons([
+                ...polygons,
+                {
+                    id: uuidv4(),
+                    name: `Polygon ${polygons.length + 1}`,
+                    color: currentColor,
+                    points: drawPoints,
+                },
+            ]);
+            setDrawPoints([]);
+
+            const selectedPoints = points
+                .filter((point) =>
+                    inside(
+                        [toCanvasX(point.x), toCanvasY(point.y + axisOffset)],
+                        drawPoints
+                    )
+                )
+                .map((point) => point.id);
+
+            setPoints((points) => {
+                return points?.map((point) => {
+                    if (selectedPoints?.includes(point.id)) {
+                        return {
+                            ...point,
+                            color: currentColor,
+                        };
+                    }
+
+                    return point;
+                });
+            });
+        } else {
+            setDrawPoints([...drawPoints, [x, y]]);
+        }
+    };
+
+    const handleRightClick = (e) => {
+        console.log(e);
+        e.preventDefault();
+        setDrawPoints([]);
+    };
 
     const handleLoad = async () => {
         const data = await fetchCsvPoints("public/CD45_pos.csv");
@@ -82,18 +167,32 @@ export default function App() {
         const y = Math.random() * yMax;
         console.log("原始座標：", { x, y });
         console.log("轉換後座標：", { x, y: toCanvasY(y) });
-        setPoint({ x: 1000, y: 0 });
+        setPoint({ x, y });
     };
 
-    const generateTicks = (max: number, interval: number) => {
-        return Array.from({ length: max / interval + 1 }, (_, i) => i * interval);
-    };
+    const generateTicks = (max: number, interval: number) =>
+        Array.from({ length: max / interval + 1 }, (_, i) => i * interval);
 
     return (
-        <div className="plot">
-            <input type="checkbox" checked={testPoint} onChange={() => setTestPoint(!testPoint)} />
-            <button onClick={testPoint ? generateRandomPoint : handleLoad}>載入資料點</button>
-            <Stage width={canvasWidth} height={canvasWidth}>
+        <div className="plot" onContextMenu={handleRightClick}>
+            <input
+                type="checkbox"
+                checked={testPoint}
+                onChange={() => setTestPoint(!testPoint)}
+            />
+            <button onClick={testPoint ? generateRandomPoint : handleLoad}>
+                載入資料點
+            </button>
+            <button
+                onClick={() => setCanUsePolygon((canUsePolygon) => !canUsePolygon)}
+            >
+                繪製 polygon
+            </button>
+            <Stage
+                width={canvasWidth}
+                height={canvasWidth}
+                onClick={handleStageClick}
+            >
                 <Layer offsetX={0} offsetY={0}>
                     {/* 繪製 X 軸 */}
                     <Line
@@ -205,7 +304,61 @@ export default function App() {
                         </>
                     )}
                 </Layer>
+                <Layer>
+                    {canUsePolygon &&
+                        polygons.map((polygon, index) => (
+                            <>
+                                <Line
+                                    key={index}
+                                    points={polygon.points.flat()}
+                                    stroke={polygon.color}
+                                    strokeWidth={2}
+                                    closed
+                                />
+                                <Text
+                                    x={polygon.points[0][0] + 15}
+                                    y={polygon.points[0][1] + 15}
+                                    text={polygon.name}
+                                    fontSize={16}
+                                    fill="white"
+                                    align="center"
+                                />
+                            </>
+                        ))}
+                    {/* 畫出所有點 */}
+                    {canUsePolygon &&
+                        drawPoints.map(([x, y], index) => (
+                            <Circle key={index} x={x} y={y} radius={4} fill={currentColor} />
+                        ))}
+
+                    {/* 畫線（或面） */}
+                    {canUsePolygon && drawPoints.length > 1 && (
+                        <Line
+                            points={drawPoints.flat()}
+                            stroke={currentColor}
+                            strokeWidth={2}
+                        />
+                    )}
+                </Layer>
             </Stage>
+            {polygons.map((polygon) => (
+                <div>
+                    <div style={{ color: polygon.color }}>{polygon.id}</div>
+                    <input type="text" value={polygon.name} onChange={(e) => {
+                        setPolygons((prevPolygons) => {
+                            return prevPolygons.map((p) => {
+                                if (p.id === polygon.id) {
+                                    return {
+                                        ...p,
+                                        name: e.target.value,
+                                    };
+                                }
+                                return p;
+                            });
+                        });
+                    }} />
+                </div>
+            ))}
         </div>
     );
 }
