@@ -1,32 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import inside from "point-in-polygon";
-import { Stage, Layer, Shape, Line, Text, Circle } from "react-konva";
 import Konva from "konva";
 import { v4 as uuidv4 } from "uuid";
 import "./App.css";
 
-type Point = [number, number];
-type Polygon = {
-    id: string;
-    name: string;
-    color: string;
-    points: Point[];
-};
+import Chart from "./components/Chart";
 
 const axisOffset = 25;
+const xDataStart = 200;
+
 // 設定軸範圍
 const xMax = 1025;
-const yMin = -axisOffset;
 const yMax = 1025;
-
-const xDataStart = 200;
+const yMin = -axisOffset;
 const xDisplayMin = xDataStart - axisOffset;
-const xDisplayMax = xMax;
-const xDisplayRange = xDisplayMax - xDisplayMin;
-
-// 設定刻度間距
-const xTickInterval = 100;
-const yTickInterval = 200;
+const xDisplayRange = xMax - xDisplayMin;
 
 const canvasHeight = 800;
 const canvasWidth = 800;
@@ -42,8 +30,6 @@ const offsetY = (canvasHeight - yMax * scaleY) / 2;
 
 const toCanvasX = (x: number) => (x - xDisplayMin) * scaleX + offsetX;
 const toCanvasY = (y: number) => canvasHeight - y * scaleY - offsetY;
-const generateTicks = (max: number, interval: number) =>
-    Array.from({ length: max / interval + 1 }, (_, i) => i * interval);
 
 // 生成隨機資料點
 function generatePoints(n: number) {
@@ -79,17 +65,17 @@ async function fetchCsvPoints(
 }
 
 export default function App() {
-    const [points, setPoints] = useState<
-        { id: string; x: number; y: number; color: string }[]
-    >([]);
+    const [points, setPoints] = useState<Point[]>([]);
     const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
     const [loaded, setLoaded] = useState(false);
     const [testPoint, setTestPoint] = useState(true);
 
     const [polygons, setPolygons] = useState<Polygon[]>([]);
-    const [drawPoints, setDrawPoints] = useState<[number, number][]>([]);
+    const [drawPoints, setDrawPoints] = useState<DrawPoints>([]);
     const [canUsePolygon, setCanUsePolygon] = useState(true);
-    const [currentColor, setCurrentColor] = useState(`hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`);
+    const [currentColor, setCurrentColor] = useState(
+        `hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`
+    );
 
     const isCloseToFirstPoint = (x: number, y: number) => {
         if (drawPoints.length === 0) return false;
@@ -188,175 +174,46 @@ export default function App() {
             >
                 繪製 polygon
             </button>
-            <Stage
-                width={canvasWidth}
-                height={canvasWidth}
-                onClick={handleStageClick}
-            >
-                <Layer offsetX={0} offsetY={0}>
-                    {/* 繪製 X 軸 */}
-                    <Line
-                        points={[
-                            toCanvasX(xDisplayMin),
-                            toCanvasY(0),
-                            toCanvasX(xDisplayMax),
-                            toCanvasY(0),
-                        ]}
-                        stroke="white"
-                        strokeWidth={2}
-                    />
-
-                    {/* 繪製 Y 軸 */}
-                    <Line
-                        points={[
-                            toCanvasX(xDisplayMin),
-                            toCanvasY(yMin + axisOffset),
-                            toCanvasX(xDisplayMin),
-                            toCanvasY(yMax + axisOffset),
-                        ]}
-                        stroke="white"
-                        strokeWidth={2}
-                    />
-
-                    {/* X 軸刻度 */}
-                    {generateTicks(xMax, xTickInterval)
-                        .filter((x) => x >= xDataStart)
-                        .map((x, index) => (
-                            <React.Fragment key={`x-tick-${index}`}>
-                                <Line
-                                    points={[
-                                        toCanvasX(x),
-                                        toCanvasY(0),
-                                        toCanvasX(x),
-                                        toCanvasY(0) + 10,
-                                    ]}
-                                    stroke="white"
-                                    strokeWidth={2}
-                                />
-                                <Text
-                                    text={x.toString()}
-                                    x={toCanvasX(x) - (x >= 100 ? 15 : 5)}
-                                    y={toCanvasY(0) + axisOffset}
-                                    fontSize={14}
-                                    fill="white"
-                                />
-                            </React.Fragment>
-                        ))}
-
-                    {/* 繪製 Y 軸刻度 */}
-                    {generateTicks(yMax, yTickInterval).map((y, index) => (
-                        <React.Fragment key={`y-tick-${index}`}>
-                            <Line
-                                points={[
-                                    toCanvasX(xDisplayMin),
-                                    toCanvasY(y + axisOffset),
-                                    toCanvasX(xDisplayMin) - 10,
-                                    toCanvasY(y + axisOffset),
-                                ]}
-                                stroke="white"
-                                strokeWidth={2}
-                            />
-                            <Text
-                                text={y.toString()}
-                                x={toCanvasX(xDisplayMin) - 40}
-                                y={toCanvasY(y + axisOffset) - 5}
-                                fontSize={14}
-                                fill="white"
-                            />
-                        </React.Fragment>
-                    ))}
-
-                    {/* 繪製資料點 */}
-                    {loaded && (
-                        <Shape
-                            sceneFunc={(ctx) => {
-                                points.forEach((p) => {
-                                    if (p.x < xDataStart) return;
-                                    ctx.beginPath();
-                                    ctx.arc(
-                                        toCanvasX(p.x),
-                                        toCanvasY(p.y + axisOffset),
-                                        1.5,
-                                        0,
-                                        Math.PI * 2
-                                    );
-                                    ctx.fillStyle = p.color;
-                                    ctx.fill();
-                                });
-                            }}
-                        />
-                    )}
-                    {point && (
-                        <>
-                            <Circle
-                                x={toCanvasX(point.x)}
-                                y={toCanvasY(point.y + axisOffset)}
-                                radius={5}
-                                fill="red"
-                            />
-                            <Text
-                                text={`(${point.x.toFixed(0)}, ${point.y.toFixed(0)})`}
-                                x={toCanvasX(point.x) + 10}
-                                y={toCanvasY(point.y) - 10}
-                                fontSize={14}
-                                fill="white"
-                            />
-                        </>
-                    )}
-                </Layer>
-                <Layer>
-                    {canUsePolygon &&
-                        polygons.map((polygon, index) => (
-                            <>
-                                <Line
-                                    key={index}
-                                    points={polygon.points.flat()}
-                                    stroke={polygon.color}
-                                    strokeWidth={2}
-                                    closed
-                                />
-                                <Text
-                                    x={polygon.points[0][0] + 15}
-                                    y={polygon.points[0][1] + 15}
-                                    text={polygon.name}
-                                    fontSize={16}
-                                    fill="white"
-                                    align="center"
-                                />
-                            </>
-                        ))}
-                    {/* 畫出所有點 */}
-                    {canUsePolygon &&
-                        drawPoints.map(([x, y], index) => (
-                            <Circle key={index} x={x} y={y} radius={4} fill={currentColor} />
-                        ))}
-
-                    {/* 畫線（或面） */}
-                    {canUsePolygon && drawPoints.length > 1 && (
-                        <Line
-                            points={drawPoints.flat()}
-                            stroke={currentColor}
-                            strokeWidth={2}
-                        />
-                    )}
-                </Layer>
-            </Stage>
+            <Chart
+                canvasWidth={canvasWidth}
+                canvasHeight={canvasHeight}
+                xDataStart={xDataStart}
+                axisOffset={axisOffset}
+                xMin={xDataStart}
+                xMax={xMax}
+                yMin={yMin}
+                yMax={yMax}
+                loaded={loaded}
+                canUsePolygon={canUsePolygon}
+                currentColor={currentColor}
+                polygons={polygons}
+                drawPoints={drawPoints}
+                points={points}
+                point={point}
+                handleStageClick={handleStageClick}
+                toCanvasX={toCanvasX}
+                toCanvasY={toCanvasY}
+            />
             {polygons.map((polygon) => (
                 <div>
                     <div style={{ color: polygon.color }}>{polygon.id}</div>
-                    <input type="text" value={polygon.name} onChange={(e) => {
-                        setPolygons((prevPolygons) => {
-                            return prevPolygons.map((p) => {
-                                if (p.id === polygon.id) {
-                                    return {
-                                        ...p,
-                                        name: e.target.value,
-                                    };
-                                }
-                                return p;
+                    <input
+                        type="text"
+                        value={polygon.name}
+                        onChange={(e) => {
+                            setPolygons((prevPolygons) => {
+                                return prevPolygons.map((p) => {
+                                    if (p.id === polygon.id) {
+                                        return {
+                                            ...p,
+                                            name: e.target.value,
+                                        };
+                                    }
+                                    return p;
+                                });
                             });
-                        });
-                    }} />
+                        }}
+                    />
                 </div>
             ))}
         </div>
