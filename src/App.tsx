@@ -179,7 +179,7 @@ export default function App() {
                 canvasHeight={canvasHeight}
                 xDataStart={xDataStart}
                 axisOffset={axisOffset}
-                xMin={xDataStart}
+                xMin={xDisplayMin}
                 xMax={xMax}
                 yMin={yMin}
                 yMax={yMax}
