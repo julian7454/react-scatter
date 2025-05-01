@@ -50,7 +50,7 @@ export default function App() {
     const [canUsePolygon, setCanUsePolygon] = useState(true);
 
     const handleLoad = async () => {
-        const data = await fetchCsvPoints('public/CD45_pos.csv');
+        const data = await fetchCsvPoints('CD45_pos.csv');
         console.log(data);
         setLoaded(true);
         requestIdleCallback(() => {
