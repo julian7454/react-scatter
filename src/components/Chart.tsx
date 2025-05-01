@@ -1,7 +1,7 @@
 import React, { useState, useId } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import inside from 'point-in-polygon';
-import { Stage, Layer, Text, Circle } from 'react-konva';
+import { Stage, Layer } from 'react-konva';
 import Konva from 'konva';
 import AxisTicks from './AxisTicks';
 import Polygons from './Polygons';
@@ -24,10 +24,10 @@ type ChartType = {
     setPolygons: React.Dispatch<React.SetStateAction<Polygon[]>>;
     points: Point[];
     setPoints: React.Dispatch<React.SetStateAction<Point[]>>;
-    point: { x: number; y: number } | null;
     xField: XField;
     yField: YField;
     hiddenPolygonIds: string[] | null;
+    setHiddenPolygonIds: React.Dispatch<React.SetStateAction<string[] | null>>;
 };
 
 export default function Chart({
@@ -39,7 +39,6 @@ export default function Chart({
     yMax,
     loaded,
     canUsePolygon,
-    point,
     polygons,
     setPolygons,
     points,
@@ -169,23 +168,6 @@ export default function Chart({
                             yField={yField}
                         />
                     )}
-                    {point && (
-                        <>
-                            <Circle
-                                x={toCanvasX(point.x)}
-                                y={toCanvasY(point.y + axisOffset)}
-                                radius={5}
-                                fill="red"
-                            />
-                            <Text
-                                text={`(${point.x.toFixed(0)}, ${point.y.toFixed(0)})`}
-                                x={toCanvasX(point.x) + 10}
-                                y={toCanvasY(point.y) - 10}
-                                fontSize={14}
-                                fill="white"
-                            />
-                        </>
-                    )}
                 </Layer>
                 <Layer>
                     {canUsePolygon && (
@@ -199,7 +181,6 @@ export default function Chart({
             <p className="axis-label x-axis-label">
                 {xField}
             </p>
-
         </div>
     );
 }

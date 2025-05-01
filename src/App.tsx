@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 import Chart from './components/Chart';
@@ -9,7 +9,6 @@ const xMax = 1025;
 const yMax = 1025;
 const canvasHeight = 800;
 const canvasWidth = 800;
-
 
 function csvToJson(csvText: string) {
     const lines = csvText.trim().split('\n');
@@ -44,14 +43,11 @@ async function fetchCsvPoints(
 
 export default function App() {
     const [points, setPoints] = useState<Point[]>([]);
-    const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
     const [polygons, setPolygons] = useState<Polygon[]>([]);
     const [loaded, setLoaded] = useState(false);
-    const [testPoint, setTestPoint] = useState(false);
     const [canUsePolygon, setCanUsePolygon] = useState(true);
     const [hiddenPolygonIds, setHiddenPolygonIds] = useState<string[] | null>(null);
 
-    console.log(hiddenPolygonIds);
     const handleLoad = async () => {
         const data = await fetchCsvPoints('CD45_pos.csv');
         console.log(data);
@@ -61,22 +57,13 @@ export default function App() {
         });
     };
 
-    const generateRandomPoint = () => {
-        const x = Math.random() * xMax;
-        const y = Math.random() * yMax;
-        setPoint({ x, y });
-    };
+    useEffect(() => {
+        handleLoad();
+    }, []);
 
     return (
         <div className="plot">
-            <input
-                type="checkbox"
-                checked={testPoint}
-                onChange={() => setTestPoint(!testPoint)}
-            />
-            <button onClick={testPoint ? generateRandomPoint : handleLoad}>
-                載入資料點
-            </button>
+
             <button
                 onClick={() => setCanUsePolygon((canUsePolygon) => !canUsePolygon)}
             >
@@ -96,10 +83,10 @@ export default function App() {
                     canUsePolygon={canUsePolygon}
                     points={points}
                     setPoints={setPoints}
-                    point={point}
                     xField="CD45-KrO"
                     yField="SS INT LIN"
                     hiddenPolygonIds={hiddenPolygonIds}
+                    setHiddenPolygonIds={setHiddenPolygonIds}
                 />
                 <Chart
                     canvasWidth={canvasWidth}
@@ -114,10 +101,10 @@ export default function App() {
                     canUsePolygon={canUsePolygon}
                     points={points}
                     setPoints={setPoints}
-                    point={point}
                     xField="CD19-PB"
                     yField="SS INT LIN"
                     hiddenPolygonIds={hiddenPolygonIds}
+                    setHiddenPolygonIds={setHiddenPolygonIds}
                 />
             </div>
             <PolygonsControl
