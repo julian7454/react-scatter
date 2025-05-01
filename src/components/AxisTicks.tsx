@@ -1,5 +1,5 @@
-import React from "react";
-import { Line, Text } from "react-konva";
+import React from 'react';
+import { Line, Text } from 'react-konva';
 
 // 設定刻度間距
 const xTickInterval = 100;

@@ -1,11 +1,11 @@
-import { Shape } from "react-konva";
+import { Shape } from 'react-konva';
 
 type DataPointsType = {
     points: Point[];
     xDataStart: number;
     axisOffset: number;
-    xField: "x1" | "x2";
-    yField: "y";
+    xField: 'x1' | 'x2';
+    yField: 'y';
     toCanvasX: (x: number) => number;
     toCanvasY: (y: number) => number;
 };

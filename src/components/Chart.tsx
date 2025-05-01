@@ -1,12 +1,12 @@
-import React, { useState, useId } from "react";
-import { v4 as uuidv4 } from "uuid";
-import inside from "point-in-polygon";
-import { Stage, Layer, Text, Circle } from "react-konva";
-import Konva from "konva";
-import AxisTicks from "./AxisTicks";
-import Polygons from "./Polygons";
-import DrawPoints from "./DrawPoints";
-import DataPoints from "./DataPoints";
+import React, { useState, useId } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import inside from 'point-in-polygon';
+import { Stage, Layer, Text, Circle } from 'react-konva';
+import Konva from 'konva';
+import AxisTicks from './AxisTicks';
+import Polygons from './Polygons';
+import DrawPoints from './DrawPoints';
+import DataPoints from './DataPoints';
 
 const scaleMarginRatio = 0.9; // 縮放比例
 // 換算單位的像素

@@ -1,7 +1,7 @@
-import { useState } from "react";
-import "./App.css";
+import { useState } from 'react';
+import './App.css';
 
-import Chart from "./components/Chart";
+import Chart from './components/Chart';
 
 const axisOffset = 25;
 const xMax = 1025;
@@ -11,11 +11,11 @@ const canvasWidth = 800;
 
 
 function csvToJson(csvText: string) {
-    const lines = csvText.trim().split("\n");
-    const headers = lines[0].split(",").map((h) => h.trim());
+    const lines = csvText.trim().split('\n');
+    const headers = lines[0].split(',').map((h) => h.trim());
 
     return lines.slice(1).map((line) => {
-        const values = line.split(",").map((v) => v.trim());
+        const values = line.split(',').map((v) => v.trim());
         const obj: Record<string, string> = {};
         headers.forEach((header, index) => {
             obj[header] = values[index];
@@ -35,7 +35,7 @@ async function fetchCsvPoints(
         x1: parseFloat(item['CD45-KrO']),
         x2: parseFloat(item['CD19-PB']),
         y: parseFloat(item['SS INT LIN']),
-        color: "#555",
+        color: '#555',
     }));
 
     return result;
@@ -50,7 +50,7 @@ export default function App() {
     const [canUsePolygon, setCanUsePolygon] = useState(true);
 
     const handleLoad = async () => {
-        const data = await fetchCsvPoints("public/CD45_pos.csv");
+        const data = await fetchCsvPoints('public/CD45_pos.csv');
         console.log(data);
         setLoaded(true);
         requestIdleCallback(() => {
@@ -140,7 +140,7 @@ export default function App() {
                             setPoints((points) =>
                                 points.map((point) =>
                                     point.sourcePolygonId === polygon.id
-                                        ? { ...point, color: "#555", sourcePolygonId: undefined }
+                                        ? { ...point, color: '#555', sourcePolygonId: undefined }
                                         : point
                                 )
                             );

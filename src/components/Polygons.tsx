@@ -1,5 +1,5 @@
-import React from "react";
-import { Line, Text } from "react-konva";
+import React from 'react';
+import { Line, Text } from 'react-konva';
 export default function Polygons({ polygons }: { polygons: Polygon[] }) {
     return (
         <>

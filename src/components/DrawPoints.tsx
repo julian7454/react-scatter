@@ -1,4 +1,4 @@
-import { Line, Circle } from "react-konva";
+import { Line, Circle } from 'react-konva';
 
 type DrawPointsType = {
     drawPoints: DrawPoints;
