@@ -22,11 +22,11 @@ type ChartType = {
     canUsePolygon: boolean;
     polygons: Polygon[];
     setPolygons: React.Dispatch<React.SetStateAction<Polygon[]>>;
-    points: Point<"x", "y">[];
-    setPoints: React.Dispatch<React.SetStateAction<Point<"x", "y">[]>>;
+    points: Point[];
+    setPoints: React.Dispatch<React.SetStateAction<Point[]>>;
     point: { x: number; y: number } | null;
-    xField: "x";
-    yField: "y";
+    xField: 'x1' | 'x2';
+    yField: 'y';
 };
 
 export default function Chart({
@@ -108,15 +108,17 @@ export default function Chart({
             const selectedPoints = points
                 .filter((point) =>
                     inside(
-                        [toCanvasX(point.x), toCanvasY(point.y + axisOffset)],
+                        [toCanvasX(point[xField]), toCanvasY(point[yField] + axisOffset)],
                         drawPoints
                     )
                 )
                 .map((point) => point.id);
 
+            const selectedIdSet = new Set(selectedPoints);
+
             setPoints((points) =>
                 points?.map((point) => {
-                    if (selectedPoints?.includes(point.id)) {
+                    if (selectedIdSet.has(point.id)) {
                         return {
                             ...point,
                             color: currentColor,

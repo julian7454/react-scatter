@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import "./App.css";
 
 import Chart from "./components/Chart";
@@ -10,46 +9,44 @@ const yMax = 1025;
 const canvasHeight = 800;
 const canvasWidth = 800;
 
-// 生成隨機資料點
-function generatePoints(n: number) {
-    const points = [];
-    for (let i = 0; i < n; i++) {
-        points.push({
-            id: uuidv4(),
-            x: Math.random() * 1000,
-            y: Math.random() * 1000,
-            //color: `hsl(${Math.random() * 360}, 80%, 60%)`,
-            color: '#555',
+
+function csvToJson(csvText: string) {
+    const lines = csvText.trim().split("\n");
+    const headers = lines[0].split(",").map((h) => h.trim());
+
+    return lines.slice(1).map((line) => {
+        const values = line.split(",").map((v) => v.trim());
+        const obj: Record<string, string> = {};
+        headers.forEach((header, index) => {
+            obj[header] = values[index];
         });
-    }
-    return points;
+        return obj;
+    });
 }
 async function fetchCsvPoints(
     url: string
-): Promise<{ x: number; y: number; color: string }[]> {
+): Promise<Point[]> {
     const response = await fetch(url);
     const text = await response.text();
-    const lines = text.trim().split("\n");
-    const result: { x: number; y: number; color: string }[] = [];
-
-    for (let i = 1; i < lines.length; i++) {
-        const [xStr, yStr, color] = lines[i].split(",");
-        const x = parseFloat(xStr);
-        const y = parseFloat(yStr);
-        if (!isNaN(x) && !isNaN(y)) {
-            result.push({ x, y, color });
-        }
-    }
+    const jsonData = csvToJson(text);
+    console.log(jsonData);
+    const result = jsonData.map((item) => ({
+        id: item['Cell_ID'],
+        x1: parseFloat(item['CD45-KrO']),
+        x2: parseFloat(item['CD19-PB']),
+        y: parseFloat(item['SS INT LIN']),
+        color: "#555",
+    }));
 
     return result;
 }
 
 export default function App() {
-    const [points, setPoints] = useState<Point<"x", "y">[]>([]);
+    const [points, setPoints] = useState<Point[]>([]);
     const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
     const [polygons, setPolygons] = useState<Polygon[]>([]);
     const [loaded, setLoaded] = useState(false);
-    const [testPoint, setTestPoint] = useState(true);
+    const [testPoint, setTestPoint] = useState(false);
     const [canUsePolygon, setCanUsePolygon] = useState(true);
 
     const handleLoad = async () => {
@@ -57,7 +54,7 @@ export default function App() {
         console.log(data);
         setLoaded(true);
         requestIdleCallback(() => {
-            setPoints(generatePoints(20000));
+            setPoints(data);
         });
     };
 
@@ -85,23 +82,6 @@ export default function App() {
             <Chart
                 canvasWidth={canvasWidth}
                 canvasHeight={canvasHeight}
-                xDataStart={0}
-                axisOffset={axisOffset}
-                xMax={xMax}
-                yMax={yMax}
-                loaded={loaded}
-                polygons={polygons}
-                setPolygons={setPolygons}
-                canUsePolygon={canUsePolygon}
-                points={points}
-                setPoints={setPoints}
-                point={point}
-                xField="x"
-                yField="y"
-            />
-            <Chart
-                canvasWidth={canvasWidth}
-                canvasHeight={canvasHeight}
                 xDataStart={200}
                 axisOffset={axisOffset}
                 xMax={xMax}
@@ -113,12 +93,29 @@ export default function App() {
                 points={points}
                 setPoints={setPoints}
                 point={point}
-                xField="x"
+                xField="x1"
+                yField="y"
+            />
+            <Chart
+                canvasWidth={canvasWidth}
+                canvasHeight={canvasHeight}
+                xDataStart={0}
+                axisOffset={axisOffset}
+                xMax={xMax}
+                yMax={yMax}
+                loaded={loaded}
+                polygons={polygons}
+                setPolygons={setPolygons}
+                canUsePolygon={canUsePolygon}
+                points={points}
+                setPoints={setPoints}
+                point={point}
+                xField="x2"
                 yField="y"
             />
 
             {polygons.map((polygon) => (
-                <div>
+                <div key={polygon.name}>
                     <div style={{ color: polygon.color }}>{polygon.id}</div>
                     <input
                         type="text"

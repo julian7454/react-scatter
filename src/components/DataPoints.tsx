@@ -1,10 +1,10 @@
 import { Shape } from "react-konva";
 
 type DataPointsType = {
-    points: Point<"x", "y">[];
+    points: Point[];
     xDataStart: number;
     axisOffset: number;
-    xField: "x";
+    xField: "x1" | "x2";
     yField: "y";
     toCanvasX: (x: number) => number;
     toCanvasY: (y: number) => number;
@@ -22,8 +22,8 @@ export default function DataPoints({
     return (
         <Shape
             sceneFunc={(ctx) => {
-                points.forEach((p, i) => {
-                    if (p.x < xDataStart) return;
+                points.forEach((p) => {
+                    if (p[xField] < xDataStart) return;
                     ctx.beginPath();
                     ctx.arc(
                         toCanvasX(p[xField]),

@@ -6,12 +6,13 @@ type Polygon = {
   points: PolygonPoint[];
   chartId: string;
 };
-type Point<TX extends string, TY extends string> = {
+type Point = {
   id: string;
+  x1: number;
+  x2: number;
+  y: number;
   color: string;
   sourcePolygonId?: string;
-} & {
-  [key in TX | TY]: number;
 };
 
 type DrawPoints = [number, number][];
