@@ -67,7 +67,7 @@ export default function App() {
             <button
                 onClick={() => setCanUsePolygon((canUsePolygon) => !canUsePolygon)}
             >
-                繪製 polygon
+                Enable / Disable Polygon
             </button>
             <div className="chart-wrapper">
                 <Chart
