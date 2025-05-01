@@ -27,6 +27,7 @@ type ChartType = {
     point: { x: number; y: number } | null;
     xField: 'x1' | 'x2';
     yField: 'y';
+    hiddenPolygonIds: string[] | null;
 };
 
 export default function Chart({
@@ -45,6 +46,7 @@ export default function Chart({
     setPoints,
     xField,
     yField,
+    hiddenPolygonIds,
 }: ChartType) {
     const yMin = -axisOffset;
     const [drawPoints, setDrawPoints] = useState<DrawPoints>([]);
@@ -183,7 +185,7 @@ export default function Chart({
                 <Layer>
                     {canUsePolygon && (
                         <>
-                            <Polygons polygons={chartPolygons} />
+                            <Polygons polygons={chartPolygons} hiddenPolygonIds={hiddenPolygonIds} />
                             <DrawPoints drawPoints={drawPoints} currentColor={currentColor} />
                         </>
                     )}

@@ -8,3 +8,12 @@
 .plot {
   margin-left: 50px;
 }
+
+.cell-color {
+  display: inline-block;
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 50%;
+}

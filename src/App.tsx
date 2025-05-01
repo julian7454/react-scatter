@@ -48,7 +48,9 @@ export default function App() {
     const [loaded, setLoaded] = useState(false);
     const [testPoint, setTestPoint] = useState(false);
     const [canUsePolygon, setCanUsePolygon] = useState(true);
+    const [hiddenPolygonIds, setHiddenPolygonIds] = useState<string[] | null>(null);
 
+    console.log(hiddenPolygonIds);
     const handleLoad = async () => {
         const data = await fetchCsvPoints('CD45_pos.csv');
         console.log(data);
@@ -95,6 +97,7 @@ export default function App() {
                 point={point}
                 xField="x1"
                 yField="y"
+                hiddenPolygonIds={hiddenPolygonIds}
             />
             <Chart
                 canvasWidth={canvasWidth}
@@ -112,11 +115,32 @@ export default function App() {
                 point={point}
                 xField="x2"
                 yField="y"
+                hiddenPolygonIds={hiddenPolygonIds}
             />
 
             {polygons.map((polygon) => (
                 <div key={polygon.name}>
-                    <div style={{ color: polygon.color }}>{polygon.id}</div>
+                    <span className="cell-color" style={{ backgroundColor: polygon.color }} onClick={() => {
+                        setHiddenPolygonIds((prev) => {
+                            if (prev?.includes(polygon.id)) {
+                                return prev.filter((id) => id !== polygon.id);
+                            } else {
+                                return prev ? [...prev, polygon.id] : [polygon.id];
+                            }
+                        });
+                        setPoints((points) =>
+                            points.map((point) => {
+                                if (point.sourcePolygonId === polygon.id) {
+                                    return {
+                                        ...point,
+                                        color: point.color === '#555' ? polygon.color : '#555',
+                                    };
+                                }
+                                return point;
+                            })
+                        );
+                    }
+                    }></span>
                     <input
                         type="text"
                         value={polygon.name}
