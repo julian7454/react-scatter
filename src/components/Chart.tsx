@@ -1,3 +1,6 @@
+import React, { useState, useId } from "react";
+import { v4 as uuidv4 } from "uuid";
+import inside from "point-in-polygon";
 import { Stage, Layer, Text, Circle } from "react-konva";
 import Konva from "konva";
 import AxisTicks from "./AxisTicks";
@@ -5,25 +8,25 @@ import Polygons from "./Polygons";
 import DrawPoints from "./DrawPoints";
 import DataPoints from "./DataPoints";
 
+const scaleMarginRatio = 0.9; // 縮放比例
+// 換算單位的像素
+
 type ChartType = {
     canvasWidth: number;
     canvasHeight: number;
     xDataStart: number;
     axisOffset: number;
-    xMin: number;
     xMax: number;
-    yMin: number;
     yMax: number;
     loaded: boolean;
     canUsePolygon: boolean;
-    currentColor: string;
     polygons: Polygon[];
-    drawPoints: DrawPoints;
-    points: Point[];
+    setPolygons: React.Dispatch<React.SetStateAction<Polygon[]>>;
+    points: Point<"x", "y">[];
+    setPoints: React.Dispatch<React.SetStateAction<Point<"x", "y">[]>>;
     point: { x: number; y: number } | null;
-    handleStageClick: (e: Konva.KonvaEventObject<MouseEvent>) => void;
-    toCanvasX: (x: number) => number;
-    toCanvasY: (y: number) => number;
+    xField: "x";
+    yField: "y";
 };
 
 export default function Chart({
@@ -31,69 +34,159 @@ export default function Chart({
     canvasHeight,
     xDataStart,
     axisOffset,
-    xMin,
     xMax,
-    yMin,
     yMax,
     loaded,
     canUsePolygon,
-    polygons,
-    drawPoints,
-    points,
     point,
-    currentColor,
-    toCanvasX,
-    toCanvasY,
-    handleStageClick,
+    polygons,
+    setPolygons,
+    points,
+    setPoints,
+    xField,
+    yField,
 }: ChartType) {
+    const yMin = -axisOffset;
+    const [drawPoints, setDrawPoints] = useState<DrawPoints>([]);
+    const [currentColor, setCurrentColor] = useState(
+        `hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`
+    );
+    const chartId = useId();
+
+    const xDisplayMin = xDataStart - axisOffset;
+    const xDisplayRange = xMax - xDisplayMin;
+    const scaleX = (canvasWidth * scaleMarginRatio) / xDisplayRange;
+    const scaleY = (canvasHeight * scaleMarginRatio) / yMax;
+
+    // 圖表雨畫布的距離
+    const offsetX = (canvasWidth - xDisplayRange * scaleX) / 2;
+    const offsetY = (canvasHeight - yMax * scaleY) / 2;
+
+    const toCanvasX = (x: number) => (x - xDisplayMin) * scaleX + offsetX;
+    const toCanvasY = (y: number) => canvasHeight - y * scaleY - offsetY;
+    const chartPolygons = polygons.filter((p) => p.chartId === chartId);
+
+    const handleRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        console.log(e);
+        e.preventDefault();
+        setDrawPoints([]);
+    };
+
+    const isCloseToFirstPoint = (x: number, y: number) => {
+        if (drawPoints.length === 0) return false;
+        const [firstX, firstY] = drawPoints[0];
+        const dx = firstX - x;
+        const dy = firstY - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < 10;
+    };
+    const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+        if (e.evt.button === 2 || !canUsePolygon) return;
+
+        const stage = e.target.getStage();
+        const pointerPosition = stage?.getPointerPosition();
+        if (!pointerPosition) return;
+
+        const { x, y } = pointerPosition;
+
+        setCurrentColor(`hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`);
+        const polygonId = uuidv4();
+
+        if (drawPoints.length > 2 && isCloseToFirstPoint(x, y)) {
+            setPolygons([
+                ...polygons,
+                {
+                    chartId,
+                    id: polygonId,
+                    name: `Polygon ${polygons.length + 1}`,
+                    color: currentColor,
+                    points: drawPoints,
+                },
+            ]);
+            setDrawPoints([]);
+
+            const selectedPoints = points
+                .filter((point) =>
+                    inside(
+                        [toCanvasX(point.x), toCanvasY(point.y + axisOffset)],
+                        drawPoints
+                    )
+                )
+                .map((point) => point.id);
+
+            setPoints((points) =>
+                points?.map((point) => {
+                    if (selectedPoints?.includes(point.id)) {
+                        return {
+                            ...point,
+                            color: currentColor,
+                            sourcePolygonId: polygonId,
+                        };
+                    }
+
+                    return point;
+                })
+            );
+        } else {
+            setDrawPoints([...drawPoints, [x, y]]);
+        }
+    };
     return (
-        <Stage width={canvasWidth} height={canvasHeight} onClick={handleStageClick}>
-            <Layer offsetX={0} offsetY={0}>
-                <AxisTicks
-                    axisOffset={axisOffset}
-                    xMin={xMin}
-                    xMax={xMax}
-                    yMin={yMin}
-                    yMax={yMax}
-                    toCanvasX={toCanvasX}
-                    toCanvasY={toCanvasY}
-                />
-                {/* 繪製資料點 */}
-                {loaded && (
-                    <DataPoints
-                        points={points}
-                        xDataStart={xDataStart}
+        <div onContextMenu={handleRightClick}>
+            <Stage
+                width={canvasWidth}
+                height={canvasHeight}
+                onClick={handleStageClick}
+            >
+                <Layer offsetX={0} offsetY={0}>
+                    <AxisTicks
                         axisOffset={axisOffset}
+                        xMin={xDisplayMin}
+                        xMax={xMax}
+                        yMin={yMin}
+                        yMax={yMax}
                         toCanvasX={toCanvasX}
                         toCanvasY={toCanvasY}
                     />
-                )}
-                {point && (
-                    <>
-                        <Circle
-                            x={toCanvasX(point.x)}
-                            y={toCanvasY(point.y + axisOffset)}
-                            radius={5}
-                            fill="red"
+                    {/* 繪製資料點 */}
+                    {loaded && (
+                        <DataPoints
+                            points={points}
+                            xDataStart={xDataStart}
+                            axisOffset={axisOffset}
+                            toCanvasX={toCanvasX}
+                            toCanvasY={toCanvasY}
+                            xField={xField}
+                            yField={yField}
                         />
-                        <Text
-                            text={`(${point.x.toFixed(0)}, ${point.y.toFixed(0)})`}
-                            x={toCanvasX(point.x) + 10}
-                            y={toCanvasY(point.y) - 10}
-                            fontSize={14}
-                            fill="white"
-                        />
-                    </>
-                )}
-            </Layer>
-            <Layer>
-                {canUsePolygon && (
-                    <>
-                        <Polygons polygons={polygons} />
-                        <DrawPoints drawPoints={drawPoints} currentColor={currentColor} />
-                    </>
-                )}
-            </Layer>
-        </Stage>
+                    )}
+                    {point && (
+                        <>
+                            <Circle
+                                x={toCanvasX(point.x)}
+                                y={toCanvasY(point.y + axisOffset)}
+                                radius={5}
+                                fill="red"
+                            />
+                            <Text
+                                text={`(${point.x.toFixed(0)}, ${point.y.toFixed(0)})`}
+                                x={toCanvasX(point.x) + 10}
+                                y={toCanvasY(point.y) - 10}
+                                fontSize={14}
+                                fill="white"
+                            />
+                        </>
+                    )}
+                </Layer>
+                <Layer>
+                    {canUsePolygon && (
+                        <>
+                            <Polygons polygons={chartPolygons} />
+                            <DrawPoints drawPoints={drawPoints} currentColor={currentColor} />
+                        </>
+                    )}
+                </Layer>
+            </Stage>
+        </div>
     );
 }

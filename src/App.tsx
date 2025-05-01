@@ -1,35 +1,14 @@
-import React, { useState, useEffect } from "react";
-import inside from "point-in-polygon";
-import Konva from "konva";
+import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import "./App.css";
 
 import Chart from "./components/Chart";
 
 const axisOffset = 25;
-const xDataStart = 200;
-
-// 設定軸範圍
 const xMax = 1025;
 const yMax = 1025;
-const yMin = -axisOffset;
-const xDisplayMin = xDataStart - axisOffset;
-const xDisplayRange = xMax - xDisplayMin;
-
 const canvasHeight = 800;
 const canvasWidth = 800;
-
-const scaleMarginRatio = 0.9; // 縮放比例
-// 換算單位的像素
-const scaleX = (canvasWidth * scaleMarginRatio) / xDisplayRange;
-const scaleY = (canvasHeight * scaleMarginRatio) / yMax;
-
-// 圖表雨畫布的距離
-const offsetX = (canvasWidth - xDisplayRange * scaleX) / 2;
-const offsetY = (canvasHeight - yMax * scaleY) / 2;
-
-const toCanvasX = (x: number) => (x - xDisplayMin) * scaleX + offsetX;
-const toCanvasY = (y: number) => canvasHeight - y * scaleY - offsetY;
 
 // 生成隨機資料點
 function generatePoints(n: number) {
@@ -39,7 +18,8 @@ function generatePoints(n: number) {
             id: uuidv4(),
             x: Math.random() * 1000,
             y: Math.random() * 1000,
-            color: `hsl(${Math.random() * 360}, 80%, 60%)`,
+            //color: `hsl(${Math.random() * 360}, 80%, 60%)`,
+            color: '#555',
         });
     }
     return points;
@@ -65,82 +45,12 @@ async function fetchCsvPoints(
 }
 
 export default function App() {
-    const [points, setPoints] = useState<Point[]>([]);
+    const [points, setPoints] = useState<Point<"x", "y">[]>([]);
     const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
+    const [polygons, setPolygons] = useState<Polygon[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [testPoint, setTestPoint] = useState(true);
-
-    const [polygons, setPolygons] = useState<Polygon[]>([]);
-    const [drawPoints, setDrawPoints] = useState<DrawPoints>([]);
     const [canUsePolygon, setCanUsePolygon] = useState(true);
-    const [currentColor, setCurrentColor] = useState(
-        `hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`
-    );
-
-    const isCloseToFirstPoint = (x: number, y: number) => {
-        if (drawPoints.length === 0) return false;
-        const [firstX, firstY] = drawPoints[0];
-        const dx = firstX - x;
-        const dy = firstY - y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < 10;
-    };
-
-    const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-        if (!canUsePolygon) {
-            return;
-        }
-        const stage = e.target.getStage();
-        const pointerPosition = stage?.getPointerPosition();
-        if (!pointerPosition) return;
-
-        const { x, y } = pointerPosition;
-
-        setCurrentColor(`hsl(${(polygons.length * 137.5) % 360}, 80%, 60%)`);
-
-        if (drawPoints.length > 2 && isCloseToFirstPoint(x, y)) {
-            setPolygons([
-                ...polygons,
-                {
-                    id: uuidv4(),
-                    name: `Polygon ${polygons.length + 1}`,
-                    color: currentColor,
-                    points: drawPoints,
-                },
-            ]);
-            setDrawPoints([]);
-
-            const selectedPoints = points
-                .filter((point) =>
-                    inside(
-                        [toCanvasX(point.x), toCanvasY(point.y + axisOffset)],
-                        drawPoints
-                    )
-                )
-                .map((point) => point.id);
-
-            setPoints((points) => {
-                return points?.map((point) => {
-                    if (selectedPoints?.includes(point.id)) {
-                        return {
-                            ...point,
-                            color: currentColor,
-                        };
-                    }
-
-                    return point;
-                });
-            });
-        } else {
-            setDrawPoints([...drawPoints, [x, y]]);
-        }
-    };
-
-    const handleRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        console.log(e);
-        e.preventDefault();
-        setDrawPoints([]);
-    };
 
     const handleLoad = async () => {
         const data = await fetchCsvPoints("public/CD45_pos.csv");
@@ -154,13 +64,11 @@ export default function App() {
     const generateRandomPoint = () => {
         const x = Math.random() * xMax;
         const y = Math.random() * yMax;
-        console.log("原始座標：", { x, y });
-        console.log("轉換後座標：", { x, y: toCanvasY(y) });
         setPoint({ x, y });
     };
 
     return (
-        <div className="plot" onContextMenu={handleRightClick}>
+        <div className="plot">
             <input
                 type="checkbox"
                 checked={testPoint}
@@ -177,23 +85,38 @@ export default function App() {
             <Chart
                 canvasWidth={canvasWidth}
                 canvasHeight={canvasHeight}
-                xDataStart={xDataStart}
+                xDataStart={0}
                 axisOffset={axisOffset}
-                xMin={xDisplayMin}
                 xMax={xMax}
-                yMin={yMin}
                 yMax={yMax}
                 loaded={loaded}
-                canUsePolygon={canUsePolygon}
-                currentColor={currentColor}
                 polygons={polygons}
-                drawPoints={drawPoints}
+                setPolygons={setPolygons}
+                canUsePolygon={canUsePolygon}
                 points={points}
+                setPoints={setPoints}
                 point={point}
-                handleStageClick={handleStageClick}
-                toCanvasX={toCanvasX}
-                toCanvasY={toCanvasY}
+                xField="x"
+                yField="y"
             />
+            <Chart
+                canvasWidth={canvasWidth}
+                canvasHeight={canvasHeight}
+                xDataStart={200}
+                axisOffset={axisOffset}
+                xMax={xMax}
+                yMax={yMax}
+                loaded={loaded}
+                polygons={polygons}
+                setPolygons={setPolygons}
+                canUsePolygon={canUsePolygon}
+                points={points}
+                setPoints={setPoints}
+                point={point}
+                xField="x"
+                yField="y"
+            />
+
             {polygons.map((polygon) => (
                 <div>
                     <div style={{ color: polygon.color }}>{polygon.id}</div>
@@ -214,6 +137,20 @@ export default function App() {
                             });
                         }}
                     />
+                    <button
+                        onClick={() => {
+                            setPolygons((prev) => prev.filter((p) => p.id !== polygon.id));
+                            setPoints((points) =>
+                                points.map((point) =>
+                                    point.sourcePolygonId === polygon.id
+                                        ? { ...point, color: "#555", sourcePolygonId: undefined }
+                                        : point
+                                )
+                            );
+                        }}
+                    >
+                        Delete
+                    </button>
                 </div>
             ))}
         </div>
