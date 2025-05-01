@@ -32,9 +32,9 @@ async function fetchCsvPoints(
     console.log(jsonData);
     const result = jsonData.map((item) => ({
         id: item['Cell_ID'],
-        x1: parseFloat(item['CD45-KrO']),
-        x2: parseFloat(item['CD19-PB']),
-        y: parseFloat(item['SS INT LIN']),
+        'CD45-KrO': parseFloat(item['CD45-KrO']),
+        'CD19-PB': parseFloat(item['CD19-PB']),
+        'SS INT LIN': parseFloat(item['SS INT LIN']),
         color: '#555',
     }));
 
@@ -81,43 +81,44 @@ export default function App() {
             >
                 繪製 polygon
             </button>
-            <Chart
-                canvasWidth={canvasWidth}
-                canvasHeight={canvasHeight}
-                xDataStart={200}
-                axisOffset={axisOffset}
-                xMax={xMax}
-                yMax={yMax}
-                loaded={loaded}
-                polygons={polygons}
-                setPolygons={setPolygons}
-                canUsePolygon={canUsePolygon}
-                points={points}
-                setPoints={setPoints}
-                point={point}
-                xField="x1"
-                yField="y"
-                hiddenPolygonIds={hiddenPolygonIds}
-            />
-            <Chart
-                canvasWidth={canvasWidth}
-                canvasHeight={canvasHeight}
-                xDataStart={0}
-                axisOffset={axisOffset}
-                xMax={xMax}
-                yMax={yMax}
-                loaded={loaded}
-                polygons={polygons}
-                setPolygons={setPolygons}
-                canUsePolygon={canUsePolygon}
-                points={points}
-                setPoints={setPoints}
-                point={point}
-                xField="x2"
-                yField="y"
-                hiddenPolygonIds={hiddenPolygonIds}
-            />
-
+            <div className="chart-wrapper">
+                <Chart
+                    canvasWidth={canvasWidth}
+                    canvasHeight={canvasHeight}
+                    xDataStart={200}
+                    axisOffset={axisOffset}
+                    xMax={xMax}
+                    yMax={yMax}
+                    loaded={loaded}
+                    polygons={polygons}
+                    setPolygons={setPolygons}
+                    canUsePolygon={canUsePolygon}
+                    points={points}
+                    setPoints={setPoints}
+                    point={point}
+                    xField="CD45-KrO"
+                    yField="SS INT LIN"
+                    hiddenPolygonIds={hiddenPolygonIds}
+                />
+                <Chart
+                    canvasWidth={canvasWidth}
+                    canvasHeight={canvasHeight}
+                    xDataStart={0}
+                    axisOffset={axisOffset}
+                    xMax={xMax}
+                    yMax={yMax}
+                    loaded={loaded}
+                    polygons={polygons}
+                    setPolygons={setPolygons}
+                    canUsePolygon={canUsePolygon}
+                    points={points}
+                    setPoints={setPoints}
+                    point={point}
+                    xField="CD19-PB"
+                    yField="SS INT LIN"
+                    hiddenPolygonIds={hiddenPolygonIds}
+                />
+            </div>
             {polygons.map((polygon) => (
                 <div key={polygon.name}>
                     <span className="cell-color" style={{ backgroundColor: polygon.color }} onClick={() => {

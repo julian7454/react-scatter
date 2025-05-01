@@ -8,11 +8,13 @@ type Polygon = {
 };
 type Point = {
   id: string;
-  x1: number;
-  x2: number;
-  y: number;
   color: string;
+  'CD45-KrO': number;
+  'CD19-PB': number;
+  'SS INT LIN': number;
   sourcePolygonId?: string;
 };
+type XField = 'CD45-KrO' | 'CD19-PB';
+type YField = 'SS INT LIN';
 
 type DrawPoints = [number, number][];

@@ -25,8 +25,8 @@ type ChartType = {
     points: Point[];
     setPoints: React.Dispatch<React.SetStateAction<Point[]>>;
     point: { x: number; y: number } | null;
-    xField: 'x1' | 'x2';
-    yField: 'y';
+    xField: XField;
+    yField: YField;
     hiddenPolygonIds: string[] | null;
 };
 
@@ -136,8 +136,13 @@ export default function Chart({
         }
     };
     return (
-        <div onContextMenu={handleRightClick}>
+        <div className="chart" onContextMenu={handleRightClick}>
+            <h4>Cell distribution (CD45+)</h4>
+            <p className="axis-label y-axis-labe">
+                {yField}
+            </p>
             <Stage
+                className="chart-canvas"
                 width={canvasWidth}
                 height={canvasHeight}
                 onClick={handleStageClick}
@@ -191,6 +196,10 @@ export default function Chart({
                     )}
                 </Layer>
             </Stage>
+            <p className="axis-label x-axis-label">
+                {xField}
+            </p>
+
         </div>
     );
 }

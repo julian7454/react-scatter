@@ -1,5 +1,4 @@
 #root {
-  max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -16,4 +15,43 @@
   height: 20px;
   margin-right: 10px;
   border-radius: 50%;
+  cursor: pointer;
+}
+
+.chart-wrapper {
+  display: flex;
+  flex-wrap:wrap;
+  gap: 35px;
+}
+
+.chart {
+  position: relative;
+}
+
+.chart h4 {
+  font-size: 25px;
+  transform: translateX(5%);
+}
+
+.chart-canvas::after {
+  content: '';
+  display: block;
+}
+
+.axis-label {
+  font-size: 18px;
+  text-align: center;
+  margin-top: 5px;
+  color: #fff;
+}
+
+.x-axis-label {
+  transform: translateX(5%);
+}
+
+.y-axis-labe {
+  position: absolute;
+  left: -10%;
+  top: 50%;
+  transform: rotate(-90deg);
 }

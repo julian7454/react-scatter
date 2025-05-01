@@ -4,8 +4,8 @@ type DataPointsType = {
     points: Point[];
     xDataStart: number;
     axisOffset: number;
-    xField: 'x1' | 'x2';
-    yField: 'y';
+    xField: XField;
+    yField: YField;
     toCanvasX: (x: number) => number;
     toCanvasY: (y: number) => number;
 };
