@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "papaparse": "^5.5.2",
     "point-in-polygon": "^1.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@types/papaparse": "^5.3.15",
     "@types/point-in-polygon": "^1.1.5",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

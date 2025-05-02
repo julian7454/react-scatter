@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 
 import Chart from './components/Chart';
-import PolygonsControl from './components/PolygonsControl';
+import { streamCsvToPoints } from './streamCsvToPoints';
 
 const axisOffset = 25;
 const xMax = 1025;
@@ -10,51 +10,29 @@ const yMax = 1025;
 const canvasHeight = 800;
 const canvasWidth = 800;
 
-function csvToJson(csvText: string) {
-    const lines = csvText.trim().split('\n');
-    const headers = lines[0].split(',').map((h) => h.trim());
-
-    return lines.slice(1).map((line) => {
-        const values = line.split(',').map((v) => v.trim());
-        const obj: Record<string, string> = {};
-        headers.forEach((header, index) => {
-            obj[header] = values[index];
-        });
-        return obj;
-    });
-}
-async function fetchCsvPoints(
-    url: string
-): Promise<Point[]> {
-    const response = await fetch(url);
-    const text = await response.text();
-    const jsonData = csvToJson(text);
-    console.log(jsonData);
-    const result = jsonData.map((item) => ({
-        id: item['Cell_ID'],
-        'CD45-KrO': parseFloat(item['CD45-KrO']),
-        'CD19-PB': parseFloat(item['CD19-PB']),
-        'SS INT LIN': parseFloat(item['SS INT LIN']),
-        color: '#555',
-    }));
-
-    return result;
-}
-
 export default function App() {
     const [points, setPoints] = useState<Point[]>([]);
     const [polygons, setPolygons] = useState<Polygon[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [canUsePolygon, setCanUsePolygon] = useState(true);
-    const [hiddenPolygonIds, setHiddenPolygonIds] = useState<string[] | null>(null);
+    const [hiddenPolygonIds, setHiddenPolygonIds] = useState<string[] | null>(
+        null
+    );
 
     const handleLoad = async () => {
-        const data = await fetchCsvPoints('CD45_pos.csv');
-        console.log(data);
-        setLoaded(true);
-        requestIdleCallback(() => {
-            setPoints(data);
-        });
+        streamCsvToPoints(
+            'CD45_pos.csv',
+            (batch) => {
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(() => {
+                        setPoints((prev) => [...prev, ...batch]);
+                    });
+                } else {
+                    setPoints((prev) => [...prev, ...batch]);
+                }
+            },
+            () => setLoaded(true)
+        );
     };
 
     useEffect(() => {
@@ -63,7 +41,6 @@ export default function App() {
 
     return (
         <div className="plot">
-
             <button
                 onClick={() => setCanUsePolygon((canUsePolygon) => !canUsePolygon)}
             >
@@ -107,12 +84,6 @@ export default function App() {
                     setHiddenPolygonIds={setHiddenPolygonIds}
                 />
             </div>
-            <PolygonsControl
-                polygons={polygons}
-                setHiddenPolygonIds={setHiddenPolygonIds}
-                setPoints={setPoints}
-                setPolygons={setPolygons}
-            />
         </div>
     );
 }
