@@ -55,3 +55,9 @@
   top: 50%;
   transform: rotate(-90deg);
 }
+
+.polygons-control {
+  display: flex;
+  max-width: 800px;
+  flex-wrap: wrap;
+}

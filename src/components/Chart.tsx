@@ -157,21 +157,19 @@ export default function Chart({
                         toCanvasY={toCanvasY}
                     />
                     {/* 繪製資料點 */}
-                    {loaded && (
-                        <DataPoints
-                            points={points}
-                            xDataStart={xDataStart}
-                            axisOffset={axisOffset}
-                            toCanvasX={toCanvasX}
-                            toCanvasY={toCanvasY}
-                            xField={xField}
-                            yField={yField}
-                            chartId={chartId}
-                        />
-                    )}
+                    <DataPoints
+                        points={points}
+                        xDataStart={xDataStart}
+                        axisOffset={axisOffset}
+                        toCanvasX={toCanvasX}
+                        toCanvasY={toCanvasY}
+                        xField={xField}
+                        yField={yField}
+                        chartId={chartId}
+                    />
                 </Layer>
                 <Layer>
-                    {canUsePolygon && (
+                    {canUsePolygon && loaded && (
                         <>
                             <Polygons
                                 polygons={chartPolygons}

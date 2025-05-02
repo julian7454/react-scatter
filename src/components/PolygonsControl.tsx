@@ -45,7 +45,7 @@ export default function PolygonsControl({
     setPolygons,
 }: PolygonsControlType) {
     return (
-        <>
+        <div className="polygons-control">
             {polygons.map((polygon) => (
                 <div key={polygon.name}>
                     <span
@@ -95,6 +95,6 @@ export default function PolygonsControl({
                     </button>
                 </div>
             ))}
-        </>
+        </div>
     );
 }
