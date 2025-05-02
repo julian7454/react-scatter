@@ -1,12 +1,45 @@
 type PolygonsControlType = {
     polygons: Polygon[];
+    chartId: string;
     setHiddenPolygonIds: React.Dispatch<React.SetStateAction<string[] | null>>;
     setPoints: React.Dispatch<React.SetStateAction<Point[]>>;
     setPolygons: React.Dispatch<React.SetStateAction<Polygon[]>>;
 };
 
+function togglePolygonHidden(
+    prev: string[] | null,
+    polygon: Polygon,
+    chartId: string
+) {
+    if (polygon.chartId !== chartId) return prev;
+    return prev?.includes(polygon.id)
+        ? prev.filter((id) => id !== polygon.id)
+        : [...(prev ?? []), polygon.id];
+}
+
+function togglePointColorDisabled(
+    point: Point,
+    polygon: Polygon,
+    chartId: string
+): Point {
+    if (point.sourcePolygonId !== polygon.id) return point;
+    const prevChartMap = point.colorDisabledCharts?.[chartId] ?? {};
+    const toggled = !prevChartMap[polygon.id];
+    return {
+        ...point,
+        colorDisabledCharts: {
+            ...point.colorDisabledCharts,
+            [chartId]: {
+                ...prevChartMap,
+                [polygon.id]: toggled,
+            },
+        },
+    };
+}
+
 export default function PolygonsControl({
     polygons,
+    chartId,
     setHiddenPolygonIds,
     setPoints,
     setPolygons,
@@ -15,27 +48,20 @@ export default function PolygonsControl({
         <>
             {polygons.map((polygon) => (
                 <div key={polygon.name}>
-                    <span className="cell-color" style={{ backgroundColor: polygon.color }} onClick={() => {
-                        setHiddenPolygonIds((prev) => {
-                            if (prev?.includes(polygon.id)) {
-                                return prev.filter((id) => id !== polygon.id);
-                            } else {
-                                return prev ? [...prev, polygon.id] : [polygon.id];
-                            }
-                        });
-                        setPoints((points) =>
-                            points.map((point) => {
-                                if (point.sourcePolygonId === polygon.id) {
-                                    return {
-                                        ...point,
-                                        color: point.color === '#555' ? polygon.color : '#555',
-                                    };
-                                }
-                                return point;
-                            })
-                        );
-                    }
-                    }></span>
+                    <span
+                        className="cell-color"
+                        style={{ backgroundColor: polygon.color }}
+                        onClick={() => {
+                            setHiddenPolygonIds((prev) =>
+                                togglePolygonHidden(prev, polygon, chartId)
+                            );
+                            setPoints((points) =>
+                                points.map((point) =>
+                                    togglePointColorDisabled(point, polygon, chartId)
+                                )
+                            );
+                        }}
+                    ></span>
                     <input
                         type="text"
                         value={polygon.name}

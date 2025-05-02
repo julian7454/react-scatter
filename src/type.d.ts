@@ -6,6 +6,12 @@ type Polygon = {
   points: PolygonPoint[];
   chartId: string;
 };
+type ColorDisabledCharts = {
+  [chartId: string]: {
+    [polygonId: string]: boolean;
+  };
+};
+
 type Point = {
   id: string;
   color: string;
@@ -13,6 +19,7 @@ type Point = {
   'CD19-PB': number;
   'SS INT LIN': number;
   sourcePolygonId?: string;
+  colorDisabledCharts?: ColorDisabledCharts;
 };
 type XField = 'CD45-KrO' | 'CD19-PB';
 type YField = 'SS INT LIN';

@@ -7,6 +7,7 @@ import AxisTicks from './AxisTicks';
 import Polygons from './Polygons';
 import DrawPoints from './DrawPoints';
 import DataPoints from './DataPoints';
+import PolygonsControl from './PolygonsControl';
 
 const scaleMarginRatio = 0.9; // 縮放比例
 // 換算單位的像素
@@ -46,6 +47,7 @@ export default function Chart({
     xField,
     yField,
     hiddenPolygonIds,
+    setHiddenPolygonIds,
 }: ChartType) {
     const yMin = -axisOffset;
     const [drawPoints, setDrawPoints] = useState<DrawPoints>([]);
@@ -137,9 +139,7 @@ export default function Chart({
     return (
         <div className="chart" onContextMenu={handleRightClick}>
             <h4>Cell distribution (CD45+)</h4>
-            <p className="axis-label y-axis-labe">
-                {yField}
-            </p>
+            <p className="axis-label y-axis-labe">{yField}</p>
             <Stage
                 className="chart-canvas"
                 width={canvasWidth}
@@ -166,21 +166,30 @@ export default function Chart({
                             toCanvasY={toCanvasY}
                             xField={xField}
                             yField={yField}
+                            chartId={chartId}
                         />
                     )}
                 </Layer>
                 <Layer>
                     {canUsePolygon && (
                         <>
-                            <Polygons polygons={chartPolygons} hiddenPolygonIds={hiddenPolygonIds} />
+                            <Polygons
+                                polygons={chartPolygons}
+                                hiddenPolygonIds={hiddenPolygonIds}
+                            />
                             <DrawPoints drawPoints={drawPoints} currentColor={currentColor} />
                         </>
                     )}
                 </Layer>
             </Stage>
-            <p className="axis-label x-axis-label">
-                {xField}
-            </p>
+            <p className="axis-label x-axis-label">{xField}</p>
+            <PolygonsControl
+                polygons={polygons}
+                setHiddenPolygonIds={setHiddenPolygonIds}
+                setPoints={setPoints}
+                setPolygons={setPolygons}
+                chartId={chartId}
+            />
         </div>
     );
 }
