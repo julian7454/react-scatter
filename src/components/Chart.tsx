@@ -157,7 +157,7 @@ export default function Chart({
                         toCanvasY={toCanvasY}
                     />
                     {/* 繪製資料點 */}
-                    <DataPoints
+                    {loaded && <DataPoints
                         points={points}
                         xDataStart={xDataStart}
                         axisOffset={axisOffset}
@@ -166,7 +166,7 @@ export default function Chart({
                         xField={xField}
                         yField={yField}
                         chartId={chartId}
-                    />
+                    />}
                 </Layer>
                 <Layer>
                     {canUsePolygon && loaded && (
@@ -181,6 +181,11 @@ export default function Chart({
                 </Layer>
             </Stage>
             <p className="axis-label x-axis-label">{xField}</p>
+            {!loaded && (
+                <div className="loading">
+                    Loading...
+                </div>
+            )}
             <PolygonsControl
                 polygons={polygons}
                 setHiddenPolygonIds={setHiddenPolygonIds}
