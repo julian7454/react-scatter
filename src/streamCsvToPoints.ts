@@ -14,11 +14,11 @@ export function streamCsvToPoints(
         step: (result: Papa.ParseStepResult<{ [key: string]: string }>) => {
             const row = result.data as { [key: string]: string };
             const point: Point = {
-                id: row['Cell_ID'],
+                id: row['id'],
                 color: '#555',
-                'CD45-KrO': parseFloat(row['CD45-KrO']),
-                'CD19-PB': parseFloat(row['CD19-PB']),
-                'SS INT LIN': parseFloat(row['SS INT LIN']),
+                'x1': parseFloat(row['x1']),
+                'x2': parseFloat(row['x2']),
+                'y': parseFloat(row['y']),
             };
             batch.push(point);
 

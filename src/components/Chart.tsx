@@ -138,7 +138,6 @@ export default function Chart({
     };
     return (
         <div className="chart" onContextMenu={handleRightClick}>
-            <h4>Cell distribution (CD45+)</h4>
             <p className="axis-label y-axis-labe">{yField}</p>
             <Stage
                 className="chart-canvas"

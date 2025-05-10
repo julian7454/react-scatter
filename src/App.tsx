@@ -21,7 +21,7 @@ export default function App() {
 
     const handleLoad = async () => {
         streamCsvToPoints(
-            'CD45_pos.csv',
+            'fake_data.csv',
             (batch) => {
                 if ('requestIdleCallback' in window) {
                     requestIdleCallback(() => {
@@ -50,24 +50,6 @@ export default function App() {
                 <Chart
                     canvasWidth={canvasWidth}
                     canvasHeight={canvasHeight}
-                    xDataStart={200}
-                    axisOffset={axisOffset}
-                    xMax={xMax}
-                    yMax={yMax}
-                    loaded={loaded}
-                    polygons={polygons}
-                    setPolygons={setPolygons}
-                    canUsePolygon={canUsePolygon}
-                    points={points}
-                    setPoints={setPoints}
-                    xField="CD45-KrO"
-                    yField="SS INT LIN"
-                    hiddenPolygonIds={hiddenPolygonIds}
-                    setHiddenPolygonIds={setHiddenPolygonIds}
-                />
-                <Chart
-                    canvasWidth={canvasWidth}
-                    canvasHeight={canvasHeight}
                     xDataStart={0}
                     axisOffset={axisOffset}
                     xMax={xMax}
@@ -78,8 +60,26 @@ export default function App() {
                     canUsePolygon={canUsePolygon}
                     points={points}
                     setPoints={setPoints}
-                    xField="CD19-PB"
-                    yField="SS INT LIN"
+                    xField="x1"
+                    yField="y"
+                    hiddenPolygonIds={hiddenPolygonIds}
+                    setHiddenPolygonIds={setHiddenPolygonIds}
+                />
+                <Chart
+                    canvasWidth={canvasWidth}
+                    canvasHeight={canvasHeight}
+                    xDataStart={200}
+                    axisOffset={axisOffset}
+                    xMax={xMax}
+                    yMax={yMax}
+                    loaded={loaded}
+                    polygons={polygons}
+                    setPolygons={setPolygons}
+                    canUsePolygon={canUsePolygon}
+                    points={points}
+                    setPoints={setPoints}
+                    xField="x2"
+                    yField="y"
                     hiddenPolygonIds={hiddenPolygonIds}
                     setHiddenPolygonIds={setHiddenPolygonIds}
                 />

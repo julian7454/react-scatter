@@ -15,13 +15,13 @@ type ColorDisabledCharts = {
 type Point = {
   id: string;
   color: string;
-  'CD45-KrO': number;
-  'CD19-PB': number;
-  'SS INT LIN': number;
+  'x1': number;
+  'x2': number;
+  'y': number;
   sourcePolygonId?: string;
   colorDisabledCharts?: ColorDisabledCharts;
 };
-type XField = 'CD45-KrO' | 'CD19-PB';
-type YField = 'SS INT LIN';
+type XField = 'x1' | 'x2';
+type YField = 'y';
 
 type DrawPoints = [number, number][];
