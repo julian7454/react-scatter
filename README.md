@@ -2,7 +2,7 @@
 選取到一半的形狀可按滑鼠右鍵取消選取，選取後下方產生對應細胞群的 label 可編輯名稱，刪除及點選顏色來隱藏/顯示對應的群組。
 
 ## 預覽網址
-<https://react-scatter.vercel.app>
+<https://react-scatter-demo.vercel.app>
 
 ## 使用技術
 - React.js
